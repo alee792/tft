@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/alee792/teamfit/pkg/tft"
 	"gopkg.in/alecthomas/kingpin.v2"
@@ -15,7 +16,7 @@ func main() {
 	var (
 		app      = kingpin.New("tft", "Test CLI for TFT API")
 		summoner = app.Arg("summoner", "Summoner Name").Required().String()
-		key      = app.Flag("key", "Riot API key").Envar("RIOT_API_KEY").String()
+		key      = app.Flag("key", "Riot API key").Envar("RIOT_API_KEY").Required().String()
 		verbose  = app.Flag("verbose", "show units and traits").Short('v').Bool()
 	)
 
@@ -48,20 +49,32 @@ func main() {
 		panic(err)
 	}
 
-	for _, p := range mOut.Match.Info.Participants {
-		if p.PUUID == sOut.Summoner.PUUID {
-			if !*verbose {
-				p.Traits = nil
-				p.Units = nil
-			}
-			p.PUUID = ""
-			bb, err := json.MarshalIndent(p, "", "  ")
-			if err != nil {
-				panic(err)
-			}
-			fmt.Printf("%s's most recent game:\n%+v\n",
-				sOut.Summoner.Name, string(bb),
-			)
+	var p tft.Participant
+	for _, v := range mOut.Match.Info.Participants {
+		if v.PUUID == sOut.Summoner.PUUID {
+			p = v
+			break
 		}
 	}
+
+	if !*verbose {
+		fmt.Println("(Use -v to see units and traits) \n")
+
+		p.Traits = nil
+		p.Units = nil
+	}
+
+	p.PUUID = ""
+
+	bb, err := json.MarshalIndent(p, "", "  ")
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("%s's Most Recent Game\n%s\n%+v\n",
+		sOut.Summoner.Name,
+		time.Unix(int64(mOut.Match.Info.GameTimestamp/1000), 0).Format(time.RFC1123),
+		string(bb),
+	)
+
 }

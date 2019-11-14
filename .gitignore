@@ -1,0 +1,5 @@
+tft
+*.json
+*.env
+*.yaml
+*.yml
