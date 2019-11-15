@@ -58,7 +58,7 @@ func main() {
 	}
 
 	if !*verbose {
-		fmt.Println("(Use -v to see units and traits) \n")
+		fmt.Printf("(Use -v to see units and traits)\n\n")
 
 		p.Traits = nil
 		p.Units = nil
