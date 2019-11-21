@@ -1,0 +1,95 @@
+syntax = "proto3";
+package github.com.alee792.teamfit.pkg.tft;
+
+import "github.com/gogo/protobuf/gogoproto/gogo.proto";
+
+option (gogoproto.protosizer_all) = true;
+option (gogoproto.sizer_all) = false;
+option go_package = "tft";
+
+message Companion {
+	option (gogoproto.goproto_getters) = false;
+	option (gogoproto.typedecl) = false;
+	int64 skin_id = 1 [(gogoproto.casttype) = "int", (gogoproto.customname) = "SkinID"];
+	string content_id = 2 [(gogoproto.customname) = "ContentID"];
+	string species = 3;
+}
+
+message Config {
+	option (gogoproto.goproto_getters) = false;
+	option (gogoproto.typedecl) = false;
+	string apikey = 1 [(gogoproto.customname) = "APIKey"];
+}
+
+message Info {
+	option (gogoproto.goproto_getters) = false;
+	option (gogoproto.typedecl) = false;
+	int64 game_timestamp = 1 [(gogoproto.casttype) = "int"];
+	repeated github.com.alee792.teamfit.pkg.tft.Participant participants = 2 [(gogoproto.nullable) = false];
+	int64 set = 3 [(gogoproto.casttype) = "int"];
+	float game_length = 4;
+	int64 queue_id = 5 [(gogoproto.casttype) = "int", (gogoproto.customname) = "QueueID"];
+	string game_version = 6;
+}
+
+message Match {
+	option (gogoproto.goproto_getters) = false;
+	option (gogoproto.typedecl) = false;
+	github.com.alee792.teamfit.pkg.tft.Info info = 1 [(gogoproto.nullable) = false];
+	github.com.alee792.teamfit.pkg.tft.Metadata metadata = 2 [(gogoproto.nullable) = false];
+}
+
+message Metadata {
+	option (gogoproto.goproto_getters) = false;
+	option (gogoproto.typedecl) = false;
+	string data_version = 1;
+	repeated string participants = 2;
+	string match_id = 3 [(gogoproto.customname) = "MatchID"];
+}
+
+message Participant {
+	option (gogoproto.goproto_getters) = false;
+	option (gogoproto.typedecl) = false;
+	int64 placement = 1 [(gogoproto.casttype) = "int"];
+	int64 level = 2 [(gogoproto.casttype) = "int"];
+	int64 last_round = 3 [(gogoproto.casttype) = "int"];
+	float time_eliminated = 4;
+	github.com.alee792.teamfit.pkg.tft.Companion companion = 5 [(gogoproto.nullable) = false];
+	repeated github.com.alee792.teamfit.pkg.tft.Trait traits = 6 [(gogoproto.nullable) = false];
+	int64 players_eliminated = 7 [(gogoproto.casttype) = "int"];
+	string puuid = 8 [(gogoproto.customname) = "PUUID"];
+	int64 total_damage_to_players = 9 [(gogoproto.casttype) = "int"];
+	repeated github.com.alee792.teamfit.pkg.tft.Unit units = 10 [(gogoproto.nullable) = false];
+}
+
+message Summoner {
+	option (gogoproto.goproto_getters) = false;
+	option (gogoproto.typedecl) = false;
+	int64 proile_icon_id = 1 [(gogoproto.casttype) = "int", (gogoproto.customname) = "ProileIconID"];
+	string name = 2;
+	string puuid = 3 [(gogoproto.customname) = "PUUID"];
+	int64 summoner_level = 4 [(gogoproto.casttype) = "int"];
+	string account_id = 5 [(gogoproto.customname) = "AccountID"];
+	string id = 6 [(gogoproto.customname) = "ID"];
+	int64 revision_date = 7 [(gogoproto.casttype) = "int"];
+}
+
+message Trait {
+	option (gogoproto.goproto_getters) = false;
+	option (gogoproto.typedecl) = false;
+	int64 tier_total = 1 [(gogoproto.casttype) = "int"];
+	string name = 2;
+	int64 tier_current = 3 [(gogoproto.casttype) = "int"];
+	int64 num_units = 4 [(gogoproto.casttype) = "int"];
+}
+
+message Unit {
+	option (gogoproto.goproto_getters) = false;
+	option (gogoproto.typedecl) = false;
+	int64 tier = 1 [(gogoproto.casttype) = "int"];
+	repeated int64 items = 2 [(gogoproto.casttype) = "int"];
+	string character_id = 3 [(gogoproto.customname) = "CharacterID"];
+	string name = 4;
+	int64 rarity = 5 [(gogoproto.casttype) = "int"];
+}
+

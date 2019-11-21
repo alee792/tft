@@ -46,6 +46,10 @@ func (c *Client) GetSummoner(ctx context.Context, in *GetSummonerRequest) (*GetS
 		return nil, err
 	}
 
+	if resp.StatusCode > 299 || resp.StatusCode < 200 {
+		return nil, fmt.Errorf("non 200 HTTP status code: %d", resp.StatusCode)
+	}
+
 	body := resp.Body
 	defer resp.Body.Close()
 
@@ -57,6 +61,22 @@ func (c *Client) GetSummoner(ctx context.Context, in *GetSummonerRequest) (*GetS
 	return &GetSummonerResponse{
 		Summoner: s,
 	}, nil
+}
+
+func (c *Client) GetSummoners(ctx context.Context, names []string) ([]Summoner, error) {
+	var summoners []Summoner
+	for _, name := range names {
+		out, err := c.GetSummoner(ctx, &GetSummonerRequest{
+			SummonerName: name,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		summoners = append(summoners, out.Summoner)
+	}
+
+	return summoners, nil
 }
 
 type ListMatchesRequest struct {
@@ -87,6 +107,10 @@ func (c *Client) ListMatches(ctx context.Context, in *ListMatchesRequest) (*List
 
 	body := resp.Body
 	defer resp.Body.Close()
+
+	if resp.StatusCode > 299 || resp.StatusCode < 200 {
+		return nil, fmt.Errorf("non 200 HTTP status code: %d", resp.StatusCode)
+	}
 
 	var matches []string
 	if err := json.NewDecoder(body).Decode(&matches); err != nil {

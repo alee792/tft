@@ -1,0 +1,8 @@
+// syntax = "proto3";
+
+// package runeterra;
+
+// // gogo is used to avoid the usage of jsonpb.
+// // It's likely future extensions will also be used.
+// import "github.com/gogo/protobuf/gogoproto/gogo.proto";
+
