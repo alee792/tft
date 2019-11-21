@@ -19,9 +19,11 @@ func main() {
 		verbose = app.Flag("verbose", "show units and traits").Short('v').Bool()
 		_       = app.HelpFlag.Short('h')
 
-		results = app.Command("results", "fetches the X most recent matches").Default()
-		smnrs   = results.Arg("smnrs", "summoner names").Strings()
-		matches = results.Flag("matches", "number of matches to pull").Default("1").Short('m').Int()
+		results     = app.Command("results", "fetches recent match results").Default()
+		resultsArgs = setupCommonArgs(results)
+
+		stats     = app.Command("stats", "calculate stats from recent matches")
+		statsArgs = setupCommonArgs(stats)
 
 		// summoner = app.Arg("summoner", "Summoner Name").Required().String()
 
@@ -39,17 +41,18 @@ func main() {
 		Storage: nil,
 	}
 
+	// Setup writer to stdout.
+	enc := json.NewEncoder(os.Stdout)
+	enc.SetIndent("", "  ")
+
 	switch cmd {
 	case results.FullCommand():
-		out, err := boarder.GetResultsFromNames(ctx, *smnrs, &leaderboards.GetResultsArgs{
-			GameLimit: *matches,
+		out, err := boarder.GetResultsFromNames(ctx, resultsArgs.Names, &leaderboards.GetResultsArgs{
+			GameLimit: resultsArgs.Matches,
 		})
 		if err != nil {
 			panic(err)
 		}
-
-		enc := json.NewEncoder(os.Stdout)
-		enc.SetIndent("", "  ")
 
 		for name, results := range out {
 			fmt.Printf("%s's Results\n", name)
@@ -71,56 +74,30 @@ func main() {
 		if !*verbose {
 			fmt.Printf("(Use -v to see units and traits)\n\n")
 		}
-		// default:
+	case stats.FullCommand():
+		out, err := boarder.GetStats(ctx, statsArgs.Names, &leaderboards.GetStatsArgs{
+			GameLimit: statsArgs.Matches,
+		})
+		if err != nil {
+			panic(err)
+		}
 
-		// 	sOut, err := c.GetSummoner(ctx, &tft.GetSummonerRequest{
-		// 		SummonerName: *summoner,
-		// 	})
-		// 	if err != nil {
-		// 		panic(err)
-		// 	}
-
-		// 	mmOut, err := c.ListMatches(ctx, &tft.ListMatchesRequest{
-		// 		PUUID: sOut.Summoner.PUUID,
-		// 	})
-		// 	if err != nil {
-		// 		panic(err)
-		// 	}
-
-		// 	mOut, err := c.GetMatch(ctx, &tft.GetMatchRequest{
-		// 		MatchID: mmOut.MatchIDs[0],
-		// 	})
-		// 	if err != nil {
-		// 		panic(err)
-		// 	}
-
-		// 	var p tft.Participant
-		// 	for _, v := range mOut.Match.Info.Participants {
-		// 		if v.PUUID == sOut.Summoner.PUUID {
-		// 			p = v
-		// 			break
-		// 		}
-		// 	}
-
-		// 	if !*verbose {
-		// 		fmt.Printf("(Use -v to see units and traits)\n\n")
-
-		// 		p.Traits = nil
-		// 		p.Units = nil
-		// 	}
-
-		// 	p.PUUID = ""
-
-		// 	bb, err := json.MarshalIndent(p, "", "  ")
-		// 	if err != nil {
-		// 		panic(err)
-		// 	}
-
-		// 	fmt.Printf("%s's Most Recent Game\n%s\n%+v\n",
-		// 		sOut.Summoner.Name,
-		// 		time.Unix(int64(mOut.Match.Info.GameTimestamp/1000), 0).Format(time.RFC1123),
-		// 		string(bb),
-		// 	)
+		if err := enc.Encode(&out); err != nil {
+			panic(err)
+		}
 	}
+}
 
+// CommonArgs shared between commands.
+type CommonArgs struct {
+	Matches int
+	Names   []string
+}
+
+func setupCommonArgs(cmd *kingpin.CmdClause) *CommonArgs {
+	var args CommonArgs
+	cmd.Arg("smnrs", "summoner names").StringsVar(&args.Names)
+	cmd.Flag("matches", "number of matches to pull").Default("1").Short('m').IntVar(&args.Matches)
+
+	return &args
 }
