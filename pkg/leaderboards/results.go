@@ -36,8 +36,10 @@ func (s *Server) GetResults(ctx context.Context, puuids []string, in *GetResults
 	}
 
 	// Collate match IDs to query.
-	var matches = make(map[string]*tft.Match)
-	var matchIDs []string
+	var (
+		matches  = make(map[string]*tft.Match)
+		matchIDs []string
+	)
 
 	for _, id := range puuids {
 		out, err := s.API.ListMatches(ctx, &tft.ListMatchesRequest{
@@ -108,10 +110,14 @@ func (s *Server) GetResultsFromNames(ctx context.Context, names []string, in *Ge
 		return nil, errors.Wrap(err, "failed to retrieve summoner PUUIDs")
 	}
 
-	var nameResults NameResults = make(map[string][]Result)
-	var ids []string
+	var (
+		nameResults NameResults = make(map[string][]Result)
+		ids         []string
+	)
+
 	for _, smnr := range smnrs {
 		nameResults[smnr.Name] = nil
+
 		ids = append(ids, smnr.PUUID)
 	}
 

@@ -24,22 +24,14 @@ func NewClient(client *http.Client, cfg Config) *Client {
 	}
 }
 
-type GetSummonerRequest struct {
-	SummonerName string
-}
-
-type GetSummonerResponse struct {
-	Summoner Summoner
-}
-
-func (c *Client) GetSummoner(ctx context.Context, in *GetSummonerRequest) (*GetSummonerResponse, error) {
+func (c *Client) GetSummoner(ctx context.Context, name string) (*Summoner, error) {
 	r, err := http.NewRequestWithContext(ctx, http.MethodGet, "https://na1.api.riotgames.com/tft/summoner/v1/summoners/by-name/", nil)
 	if err != nil {
 		return nil, err
 	}
 
 	r.Header.Set("X-Riot-Token", c.Config.APIKey)
-	r.URL.Path = path.Join(r.URL.Path, in.SummonerName)
+	r.URL.Path = path.Join(r.URL.Path, name)
 
 	resp, err := c.client.Do(r)
 	if err != nil {
@@ -58,22 +50,18 @@ func (c *Client) GetSummoner(ctx context.Context, in *GetSummonerRequest) (*GetS
 		return nil, err
 	}
 
-	return &GetSummonerResponse{
-		Summoner: s,
-	}, nil
+	return &s, nil
 }
 
 func (c *Client) GetSummoners(ctx context.Context, names []string) ([]Summoner, error) {
 	var summoners []Summoner
 	for _, name := range names {
-		out, err := c.GetSummoner(ctx, &GetSummonerRequest{
-			SummonerName: name,
-		})
+		out, err := c.GetSummoner(ctx, name)
 		if err != nil {
 			return nil, err
 		}
 
-		summoners = append(summoners, out.Summoner)
+		summoners = append(summoners, *out)
 	}
 
 	return summoners, nil
@@ -161,16 +149,14 @@ func (c *Client) GetMatch(ctx context.Context, in *GetMatchRequest) (*GetMatchRe
 	}, nil
 }
 
-func (c *Client) GetMostRecentMatch(ctx context.Context, summoner string) (*Match, error) {
-	sOut, err := c.GetSummoner(ctx, &GetSummonerRequest{
-		SummonerName: summoner,
-	})
+func (c *Client) GetMostRecentMatch(ctx context.Context, name string) (*Match, error) {
+	smnr, err := c.GetSummoner(ctx, name)
 	if err != nil {
 		return nil, err
 	}
 
 	mmOut, err := c.ListMatches(ctx, &ListMatchesRequest{
-		PUUID: sOut.Summoner.PUUID,
+		PUUID: smnr.PUUID,
 	})
 	if err != nil {
 		return nil, err
@@ -186,14 +172,33 @@ func (c *Client) GetMostRecentMatch(ctx context.Context, summoner string) (*Matc
 	return &mOut.Match, nil
 }
 
+// Summoner uses reflects the convention of the Riot API and
+// uses camelCase instead of snake_case for JSON encoding.
 type Summoner struct {
-	ProileIconID  int
-	Name          string
-	PUUID         string
-	SummonerLevel int
-	AccountID     string
-	ID            string
-	RevisionDate  int
+	ProileIconID  int    `json:"profileIconId"`
+	Name          string `json:"name"`
+	PUUID         string `json:"puuid"`
+	SummonerLevel int    `json:"summonerLevel"`
+	AccountID     string `json:"accountId"`
+	ID            string `json:"id"`
+	RevisionDate  int    `json:"revisionDate"`
+}
+
+// MarshalJSON hides confidential fields.
+func (s *Summoner) MarshalJSON() ([]byte, error) {
+	return json.Marshal(&struct {
+		ProileIconID  int    `json:"-"`
+		Name          string `json:"name"`
+		PUUID         string `json:"-"`
+		SummonerLevel int    `json:"summonerLevel"`
+		AccountID     string `json:"-"`
+		ID            string `json:"-"`
+		RevisionDate  int    `json:"revisionDate"`
+	}{
+		Name:          s.Name,
+		SummonerLevel: s.SummonerLevel,
+		RevisionDate:  s.RevisionDate,
+	})
 }
 
 type Match struct {

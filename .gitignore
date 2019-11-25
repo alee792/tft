@@ -3,3 +3,4 @@ tft
 *.env
 *.yaml
 *.yml
+golangci-lint

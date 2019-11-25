@@ -24,7 +24,7 @@ type Storage interface {
 
 // API for TFT
 type API interface {
-	GetSummoner(ctx context.Context, in *tft.GetSummonerRequest) (*tft.GetSummonerResponse, error)
+	GetSummoner(ctx context.Context, name string) (*tft.Summoner, error)
 	GetSummoners(ctx context.Context, names []string) ([]tft.Summoner, error)
 	ListMatches(ctx context.Context, in *tft.ListMatchesRequest) (*tft.ListMatchesResponse, error)
 	GetMatch(ctx context.Context, in *tft.GetMatchRequest) (*tft.GetMatchResponse, error)
@@ -44,6 +44,7 @@ type SummonerID struct {
 	Name  string
 }
 
+// UnixMS parses a MS formatted epoch timestamp for a Go time.Time.
 func UnixMS(ms int) time.Time {
 	return time.Unix(int64(ms/1000), 0)
 }

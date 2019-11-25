@@ -8,13 +8,13 @@ import (
 
 // Stats are aggregations of game results.
 type Stats struct {
-	Games             int
-	DamageDealt       int
-	PlayersEliminated int
-	BoardValue        int
-	Wins              int
-	TopFours          int
-	AverageFinish     float32
+	Games             int     `json:"games"`
+	DamageDealt       int     `json:"damageDealt"`
+	PlayersEliminated int     `json:"playersEliminated"`
+	BoardValue        int     `json:"boardValue"`
+	Wins              int     `json:"wins"`
+	TopFours          int     `json:"topFours"`
+	AverageFinish     float32 `json:"averageFinish"`
 }
 
 func getBoardValue(uu []tft.Unit) int {
@@ -22,6 +22,7 @@ func getBoardValue(uu []tft.Unit) int {
 	for _, u := range uu {
 		val += u.Tier * u.Rarity
 	}
+
 	return val
 }
 
@@ -35,6 +36,7 @@ type GetStatsResponse struct {
 	Leaderboard map[string]Stats // Key = Summoner.Name
 }
 
+// GetStats for Summoner's by name.
 func (s *Server) GetStats(ctx context.Context, names []string, in *GetStatsArgs) (map[string]Stats, error) {
 	out, err := s.GetResultsFromNames(ctx, names, &GetResultsArgs{
 		GameLimit: in.GameLimit,
@@ -53,8 +55,14 @@ func (s *Server) GetStats(ctx context.Context, names []string, in *GetStatsArgs)
 
 // CalculateStats for a set of results.
 func CalculateStats(rr []Result) Stats {
-	var stat Stats
-	var finishes float32
+	var (
+		stat     Stats
+		finishes float32
+	)
+
+	if len(rr) == 0 {
+		return stat
+	}
 
 	for _, r := range rr {
 		stat.DamageDealt += r.TotalDamageToPlayers
