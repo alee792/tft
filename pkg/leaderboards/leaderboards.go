@@ -29,6 +29,7 @@ type API interface {
 	ListMatches(ctx context.Context, in *tft.ListMatchesRequest) (*tft.ListMatchesResponse, error)
 	GetMatch(ctx context.Context, in *tft.GetMatchRequest) (*tft.GetMatchResponse, error)
 	GetMostRecentMatch(ctx context.Context, summoner string) (*tft.Match, error)
+	GetLeagueEntry(ctx context.Context, summonerID string) (*tft.LeagueEntry, error)
 }
 
 // Leaderboard is a statless group of Summoners.

@@ -3,6 +3,7 @@ package rest
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -80,6 +81,38 @@ func (s *Server) GetStatsByNameHandler() http.HandlerFunc {
 	}
 }
 
+func (s *Server) GetResultsByNameHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		q := r.URL.Query()
+
+		names, ok := q["name"]
+		if !ok || len(names[0]) < 1 {
+			http.Error(w, "missing name", http.StatusBadRequest)
+			return
+		}
+
+		rawLimit := q.Get("matches")
+		matches, _ := strconv.Atoi(rawLimit)
+		if matches < 1 {
+			matches = 10
+		}
+
+		// App logic.
+		ctx := context.Background()
+		out, err := s.Boarder.GetResultsFromNames(ctx, names, &leaderboards.GetResultsArgs{
+			GameLimit: matches,
+		})
+		if err != nil {
+			return
+		}
+
+		// Respond.
+		if err := s.respondJSON(w, out, http.StatusOK); err != nil {
+			s.Logger.Warnw("json encoding failed", "err", err)
+		}
+	}
+}
+
 func (s *Server) GetSummonerHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		q := r.URL.Query()
@@ -92,10 +125,13 @@ func (s *Server) GetSummonerHandler() http.HandlerFunc {
 
 		// App logic.
 		ctx := context.Background()
-		out, err := s.Boarder.API.GetSummoner(ctx, names[0])
+		out, err := s.Boarder.GetSummoner(ctx, names[0])
 		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+
+		fmt.Println(out.LeagueEntry)
 
 		// Respond.
 		if err := s.respondJSON(w, out, http.StatusOK); err != nil {

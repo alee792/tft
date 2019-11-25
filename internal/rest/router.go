@@ -17,6 +17,7 @@ func (s *Server) Route() {
 
 			r.Get("/", s.GetSummonerHandler())
 			r.Get("/stats", s.GetStatsByNameHandler())
+			r.Get("/results", s.GetResultsByNameHandler())
 		})
 	})
 

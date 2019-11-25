@@ -39,7 +39,7 @@ func (c *Client) GetSummoner(ctx context.Context, name string) (*Summoner, error
 	}
 
 	if resp.StatusCode > 299 || resp.StatusCode < 200 {
-		return nil, fmt.Errorf("non 200 HTTP status code: %d", resp.StatusCode)
+		return nil, fmt.Errorf("non 200 status code: %d", resp.StatusCode)
 	}
 
 	body := resp.Body
@@ -81,6 +81,7 @@ func (c *Client) ListMatches(ctx context.Context, in *ListMatchesRequest) (*List
 	}
 
 	path := fmt.Sprintf("https://americas.api.riotgames.com/tft/match/v1/matches/by-puuid/%s/ids", in.PUUID)
+
 	r, err := http.NewRequestWithContext(ctx, http.MethodGet, path, nil)
 	if err != nil {
 		return nil, err
@@ -91,6 +92,10 @@ func (c *Client) ListMatches(ctx context.Context, in *ListMatchesRequest) (*List
 	resp, err := c.client.Do(r)
 	if err != nil {
 		return nil, err
+	}
+
+	if resp.StatusCode > 299 || resp.StatusCode < 200 {
+		return nil, fmt.Errorf("non-200 status code: %d", resp.StatusCode)
 	}
 
 	body := resp.Body
@@ -124,6 +129,7 @@ func (c *Client) GetMatch(ctx context.Context, in *GetMatchRequest) (*GetMatchRe
 	}
 
 	path := fmt.Sprintf("https://americas.api.riotgames.com/tft/match/v1/matches/%s", in.MatchID)
+
 	r, err := http.NewRequestWithContext(ctx, http.MethodGet, path, nil)
 	if err != nil {
 		return nil, err
@@ -134,6 +140,10 @@ func (c *Client) GetMatch(ctx context.Context, in *GetMatchRequest) (*GetMatchRe
 	resp, err := c.client.Do(r)
 	if err != nil {
 		return nil, err
+	}
+
+	if resp.StatusCode > 299 || resp.StatusCode < 200 {
+		return nil, fmt.Errorf("non-200 status code: %d", resp.StatusCode)
 	}
 
 	body := resp.Body
@@ -170,6 +180,40 @@ func (c *Client) GetMostRecentMatch(ctx context.Context, name string) (*Match, e
 	}
 
 	return &mOut.Match, nil
+}
+
+func (c *Client) GetLeagueEntry(ctx context.Context, summonerID string) (*LeagueEntry, error) {
+	path := fmt.Sprintf("https://na1.api.riotgames.com/tft/league/v1/entries/by-summoner/%s", summonerID)
+
+	r, err := http.NewRequestWithContext(ctx, http.MethodGet, path, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	r.Header.Set("X-Riot-Token", c.Config.APIKey)
+
+	resp, err := c.client.Do(r)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode > 299 || resp.StatusCode < 200 {
+		return nil, fmt.Errorf("non-200 status code: %d", resp.StatusCode)
+	}
+
+	body := resp.Body
+	defer resp.Body.Close()
+
+	var out []LeagueEntry
+	if err := json.NewDecoder(body).Decode(&out); err != nil {
+		return nil, err
+	}
+
+	if len(out) < 1 {
+		return nil, nil
+	}
+
+	return &out[0], nil
 }
 
 // Summoner uses reflects the convention of the Riot API and
@@ -253,4 +297,28 @@ type Metadata struct {
 	DataVersion  string   `json:"data_version"`
 	Participants []string `json:"participants"`
 	MatchID      string   `json:"match_id"`
+}
+
+type LeagueEntry struct {
+	Inactive     bool   `json:"inactive"`
+	FreshBlood   bool   `json:"freshBlood"`
+	Veteran      bool   `json:"veteran"`
+	HotStreak    bool   `json:"hotStreak"`
+	QueueType    string `json:"queueType"`
+	SummonerName string `json:"summonerName"`
+	MiniSeries   MiniSeries
+	Wins         int    `json:"wins"`
+	Losses       int    `json:"losses"`
+	Rank         string `json:"rank"`
+	LeagueID     string `json:"leagueId"`
+	Tier         string `json:"tier"`
+	SummonerID   string `json:"summonerID"`
+	LeaguePoints int    `json:"leaguePoints"`
+}
+
+type MiniSeries struct {
+	Progress string `json:"progress"`
+	Losses   int    `json:"losses"`
+	Target   int    `json:"target"`
+	Wins     int    `json:"wins"`
 }
