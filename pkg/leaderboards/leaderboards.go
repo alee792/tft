@@ -18,8 +18,8 @@ type Server struct {
 type Storage interface {
 	CreateLeaderboard(ctx context.Context, board *Leaderboard) (*Leaderboard, error)
 	GetLeaderboard(ctx context.Context, id string) (*Leaderboard, error)
-	UpdateLeaderboard(ctx context.Context, id string, board *Leaderboard) (*Leaderboard, error)
-	DeleteLeaderboard(ctx context.Context, id string) (*Leaderboard, error)
+	// UpdateLeaderboard(ctx context.Context, id string, board *Leaderboard) (*Leaderboard, error)
+	// DeleteLeaderboard(ctx context.Context, id string) (*Leaderboard, error)
 }
 
 // API for TFT

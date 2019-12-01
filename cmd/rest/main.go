@@ -1,12 +1,12 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"os"
 
 	"github.com/alee792/teamfit/internal/rest"
 	"github.com/alee792/teamfit/pkg/leaderboards"
+	"github.com/alee792/teamfit/pkg/resolver"
 	"github.com/alee792/teamfit/pkg/tft"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
@@ -24,18 +24,18 @@ func main() {
 
 	kingpin.MustParse(app.Parse(os.Args[1:]))
 
+	r := resolver.Resolver{}
+
 	// Create API Client and Leaderboard server.
 	b := &leaderboards.Server{
 		API:     tft.NewClient(http.DefaultClient, tftCfg),
-		Storage: nil,
+		Storage: r.ResolvePostgres(),
 	}
 
 	s, err := rest.NewServer(restCfg, rest.WithBoarder(b))
 	if err != nil {
 		panic(err)
 	}
-
-	fmt.Println(s.Config)
 
 	if err := http.ListenAndServe(s.Config.Addr, s.Router); err != nil {
 		s.Logger.Fatal(err)

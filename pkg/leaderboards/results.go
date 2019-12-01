@@ -58,7 +58,6 @@ func (s *Summoner) MarshalJSON() ([]byte, error) {
 		Rank         string `json:"rank"`
 		LeagueID     string `json:"leagueId"`
 		Tier         string `json:"tier"`
-		SummonerID   string `json:"summonerID"`
 		LeaguePoints int    `json:"leaguePoints"`
 		tft.MiniSeries
 	}{
@@ -75,7 +74,6 @@ func (s *Summoner) MarshalJSON() ([]byte, error) {
 		Rank:          s.Rank,
 		LeagueID:      s.LeagueID,
 		Tier:          s.Tier,
-		SummonerID:    s.SummonerID,
 		LeaguePoints:  s.LeaguePoints,
 		MiniSeries:    s.MiniSeries,
 	})
