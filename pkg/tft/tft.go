@@ -300,20 +300,20 @@ type Metadata struct {
 }
 
 type LeagueEntry struct {
-	Inactive     bool   `json:"inactive"`
-	FreshBlood   bool   `json:"freshBlood"`
-	Veteran      bool   `json:"veteran"`
-	HotStreak    bool   `json:"hotStreak"`
-	QueueType    string `json:"queueType"`
-	SummonerName string `json:"summonerName"`
-	MiniSeries   MiniSeries
-	Wins         int    `json:"wins"`
-	Losses       int    `json:"losses"`
-	Rank         string `json:"rank"`
-	LeagueID     string `json:"leagueId"`
-	Tier         string `json:"tier"`
-	SummonerID   string `json:"summonerID"`
-	LeaguePoints int    `json:"leaguePoints"`
+	Inactive     bool       `json:"inactive"`
+	FreshBlood   bool       `json:"freshBlood"`
+	Veteran      bool       `json:"veteran"`
+	HotStreak    bool       `json:"hotStreak"`
+	QueueType    string     `json:"queueType"`
+	SummonerName string     `json:"summonerName"`
+	MiniSeries   MiniSeries `json:"miniSeries,omitempty"`
+	Wins         int        `json:"wins"`
+	Losses       int        `json:"losses"`
+	Rank         string     `json:"rank"`
+	LeagueID     string     `json:"leagueId"`
+	Tier         string     `json:"tier"`
+	SummonerID   string     `json:"summonerID"`
+	LeaguePoints int        `json:"leaguePoints"`
 }
 
 type MiniSeries struct {

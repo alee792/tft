@@ -47,19 +47,19 @@ func (s *Summoner) MarshalJSON() ([]byte, error) {
 		ID            string `json:"-"`
 		RevisionDate  int    `json:"revisionDate"`
 		// LeagueEntry
-		Inactive     bool   `json:"inactive"`
-		FreshBlood   bool   `json:"freshBlood"`
-		Veteran      bool   `json:"veteran"`
-		HotStreak    bool   `json:"hotStreak"`
-		QueueType    string `json:"queueType"`
-		SummonerName string `json:"summonerName,omitempty"`
-		Wins         int    `json:"wins"`
-		Losses       int    `json:"losses"`
-		Rank         string `json:"rank"`
-		LeagueID     string `json:"leagueId"`
-		Tier         string `json:"tier"`
-		LeaguePoints int    `json:"leaguePoints"`
-		tft.MiniSeries
+		Inactive       bool   `json:"inactive"`
+		FreshBlood     bool   `json:"freshBlood"`
+		Veteran        bool   `json:"veteran"`
+		HotStreak      bool   `json:"hotStreak"`
+		QueueType      string `json:"queueType"`
+		SummonerName   string `json:"summonerName,omitempty"`
+		Wins           int    `json:"wins"`
+		Losses         int    `json:"losses"`
+		Rank           string `json:"rank"`
+		LeagueID       string `json:"leagueId"`
+		Tier           string `json:"tier"`
+		LeaguePoints   int    `json:"leaguePoints"`
+		tft.MiniSeries `json:"miniSeries,omitempty"`
 	}{
 		Name:          s.Name,
 		SummonerLevel: s.SummonerLevel,
