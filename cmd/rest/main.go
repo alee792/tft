@@ -6,6 +6,7 @@ import (
 
 	"github.com/alee792/teamfit/internal/rest"
 	"github.com/alee792/teamfit/pkg/leaderboards"
+	"github.com/alee792/teamfit/pkg/storage/jsonmap"
 	"github.com/alee792/teamfit/pkg/tft"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
@@ -23,12 +24,15 @@ func main() {
 
 	kingpin.MustParse(app.Parse(os.Args[1:]))
 
-	// r := resolver.Resolver{}
+	store, err := jsonmap.NewClient("./test.json")
+	if err != nil {
+		panic(err)
+	}
 
 	// Create API Client and Leaderboard server.
 	b := &leaderboards.Server{
 		API:     tft.NewClient(http.DefaultClient, tftCfg),
-		Storage: nil,
+		Storage: store,
 	}
 
 	s, err := rest.NewServer(restCfg, rest.WithBoarder(b))

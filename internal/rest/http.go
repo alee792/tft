@@ -3,11 +3,11 @@ package rest
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/alee792/teamfit/pkg/leaderboards"
+	"github.com/alee792/teamfit/pkg/tft"
 	"github.com/go-chi/chi"
 	"go.uber.org/zap"
 )
@@ -131,13 +131,94 @@ func (s *Server) GetSummonerHandler() http.HandlerFunc {
 			return
 		}
 
-		fmt.Println(out.LeagueEntry)
+		// Respond.
+		if err := s.respondJSON(w, out, http.StatusOK); err != nil {
+			s.Logger.Warnw("json encoding failed", "err", err)
+		}
+	}
+}
+
+type CreateLeaderBoardRequest struct {
+	Name      string
+	Summoners []string
+}
+
+func (s *Server) CreateLeaderboardHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		in := &CreateLeaderBoardRequest{}
+
+		body := r.Body
+		defer r.Body.Close()
+
+		if err := json.NewDecoder(body).Decode(&in); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		board, err := s.populateBoard(ctx, in)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		out, err := s.Boarder.Storage.CreateLeaderboard(ctx, board)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
 		// Respond.
 		if err := s.respondJSON(w, out, http.StatusOK); err != nil {
 			s.Logger.Warnw("json encoding failed", "err", err)
 		}
 	}
+}
+
+func (s *Server) GetLeaderboardByNameHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		q := r.URL.Query()
+
+		names, ok := q["name"]
+		if !ok || len(names[0]) < 1 {
+			http.Error(w, "missing name", http.StatusBadRequest)
+			return
+		}
+
+		ctx := r.Context()
+
+		out, err := s.Boarder.Storage.GetLeaderboard(ctx, names[0])
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		// Respond.
+		if err := s.respondJSON(w, out, http.StatusOK); err != nil {
+			s.Logger.Warnw("json encoding failed", "err", err)
+		}
+	}
+}
+
+func (s *Server) populateBoard(ctx context.Context, in *CreateLeaderBoardRequest) (*leaderboards.Leaderboard, error) {
+	board := &leaderboards.Leaderboard{
+		ID:   "",
+		Name: in.Name,
+	}
+
+	smnrs := make(map[string]tft.Summoner)
+	for _, name := range in.Summoners {
+		smnr, err := s.Boarder.API.GetSummoner(ctx, name)
+		if err != nil {
+			return nil, err
+		}
+
+		smnrs[smnr.Name] = *smnr
+	}
+
+	board.Summoners = smnrs
+
+	return board, nil
 }
 
 func (s *Server) respondJSON(w http.ResponseWriter, v interface{}, status int) error {
