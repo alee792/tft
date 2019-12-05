@@ -7,7 +7,6 @@ import (
 	"strconv"
 
 	"github.com/alee792/teamfit/pkg/leaderboards"
-	"github.com/alee792/teamfit/pkg/tft"
 	"github.com/go-chi/chi"
 	"go.uber.org/zap"
 )
@@ -206,9 +205,9 @@ func (s *Server) populateBoard(ctx context.Context, in *CreateLeaderBoardRequest
 		Name: in.Name,
 	}
 
-	smnrs := make(map[string]tft.Summoner)
+	smnrs := make(map[string]leaderboards.Summoner)
 	for _, name := range in.Summoners {
-		smnr, err := s.Boarder.API.GetSummoner(ctx, name)
+		smnr, err := s.Boarder.GetSummoner(ctx, name)
 		if err != nil {
 			return nil, err
 		}

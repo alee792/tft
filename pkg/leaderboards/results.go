@@ -209,6 +209,10 @@ func (s *Server) GetSummoner(ctx context.Context, summonerName string) (*Summone
 		return nil, errors.Wrap(err, "failed to get league entry")
 	}
 
+	if le == nil {
+		le = &tft.LeagueEntry{}
+	}
+
 	return &Summoner{
 		Summoner:    *smnr,
 		LeagueEntry: *le,

@@ -34,9 +34,9 @@ type API interface {
 
 // Leaderboard is a statless group of Summoners.
 type Leaderboard struct {
-	ID        string
-	Name      string
-	Summoners map[string]tft.Summoner // Key = Summoner.Name
+	ID        string              `json:"id"`
+	Name      string              `json:"name"`
+	Summoners map[string]Summoner // Key = Summoner.Name `json:"summoners"`
 }
 
 // SummonerID ties a PUUID to a Name.
