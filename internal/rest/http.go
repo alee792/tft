@@ -8,6 +8,7 @@ import (
 
 	"github.com/alee792/teamfit/pkg/leaderboards"
 	"github.com/go-chi/chi"
+	"github.com/pkg/errors"
 	"go.uber.org/zap"
 )
 
@@ -209,7 +210,7 @@ func (s *Server) populateBoard(ctx context.Context, in *CreateLeaderBoardRequest
 	for _, name := range in.Summoners {
 		smnr, err := s.Boarder.GetSummoner(ctx, name)
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrapf(err, "failed to retrieve summoner: %s", name)
 		}
 
 		smnrs[smnr.Name] = *smnr
