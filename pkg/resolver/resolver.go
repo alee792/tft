@@ -1,12 +1,11 @@
 package resolver
 
 import (
-	pg "github.com/alee792/teamfit/pkg/storage/postgres"
-	"github.com/jmoiron/sqlx" 
+	"github.com/alee792/teamfit/pkg/storage/postgres"
+	"github.com/jmoiron/sqlx"
 	// _ "github.com/lib/pq"
-	_ "github.com/GoogleCloudPlatform/cloudsql-proxy/proxy/dialers/postgres"
 )
- 
+
 type Resolver struct {
 	postgres *postgres.Client
 }

@@ -6,7 +6,6 @@ import (
 
 	"github.com/alee792/teamfit/internal/rest"
 	"github.com/alee792/teamfit/pkg/leaderboards"
-	"github.com/alee792/teamfit/pkg/resolver"
 	"github.com/alee792/teamfit/pkg/tft"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
@@ -24,12 +23,12 @@ func main() {
 
 	kingpin.MustParse(app.Parse(os.Args[1:]))
 
-	r := resolver.Resolver{}
+	// r := resolver.Resolver{}
 
 	// Create API Client and Leaderboard server.
 	b := &leaderboards.Server{
 		API:     tft.NewClient(http.DefaultClient, tftCfg),
-		Storage: r.ResolvePostgres(),
+		Storage: nil,
 	}
 
 	s, err := rest.NewServer(restCfg, rest.WithBoarder(b))
