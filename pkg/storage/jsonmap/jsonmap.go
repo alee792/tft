@@ -1,8 +1,10 @@
 package jsonmap
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"io/ioutil"
 	"os"
 	"sync"
 
@@ -17,38 +19,30 @@ type Client struct {
 	Path     string
 	Boards   map[string]*leaderboards.Leaderboard
 	boardMux *sync.Mutex
-	enc      *json.Encoder
-	dec      *json.Decoder
-	file     *os.File
 	fileMux  *sync.Mutex
 }
 
 func NewClient(path string) (*Client, error) {
-	f, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE, 0660)
-	if err != nil {
-		return nil, err
-	}
-
 	c := &Client{
 		Path:     path,
 		Boards:   make(map[string]*leaderboards.Leaderboard),
 		boardMux: &sync.Mutex{},
 		fileMux:  &sync.Mutex{},
-		enc:      json.NewEncoder(f),
-		dec:      json.NewDecoder(f),
-		file:     f,
 	}
 
-	// Don't read if it's empty.
-	stat, err := f.Stat()
-	if err == nil {
-		if stat.Size() == 0 {
-			return c, nil
-		}
+	f, err := os.OpenFile(path, os.O_RDONLY|os.O_CREATE, 0666)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+
+	info, err := os.Stat(path)
+	if err != nil || info.Size() == 0 {
+		return c, nil
 	}
 
 	if err := c.read(); err != nil {
-		return nil, err
+		return nil, errors.Wrapf(err, "unable to read %s", path)
 	}
 
 	return c, nil
@@ -78,7 +72,12 @@ func (c *Client) read() error {
 	c.fileMux.Lock()
 	defer c.fileMux.Unlock()
 
-	if err := c.dec.Decode(&c.Boards); err != nil {
+	bb, err := ioutil.ReadFile(c.Path)
+	if err != nil {
+		return err
+	}
+
+	if err := json.NewDecoder(bytes.NewReader(bb)).Decode(&c.Boards); err != nil {
 		return errors.Wrapf(err, "could not decode file at %s", c.Path)
 	}
 
@@ -89,7 +88,16 @@ func (c *Client) write() error {
 	c.fileMux.Lock()
 	defer c.fileMux.Unlock()
 
-	if err := c.enc.Encode(&c.Boards); err != nil {
+	f, err := os.OpenFile(c.Path, os.O_CREATE|os.O_WRONLY, os.ModePerm)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	enc := json.NewEncoder(f)
+	enc.SetIndent("", "  ")
+
+	if err := enc.Encode(&c.Boards); err != nil {
 		return errors.Wrapf(err, "could not decode file at %s", c.Path)
 	}
 
